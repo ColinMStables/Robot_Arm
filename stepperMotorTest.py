@@ -50,6 +50,9 @@ class stepperMotor:
                 self.counter += 1
             time.sleep(timeDelay)
 
+    def calculateAngleDegrees(self):
+        return (self.counter / 200)*360
+
     def stepperMovement(self, steps, direction, timeDelay):
        #__doc__
         """
@@ -66,3 +69,15 @@ class stepperMotor:
         else:
             task = threading.Thread(target=self.stepperMovementThread, args=(steps, direction,) )
         task.start()
+
+    def stepperMoveToAngle(self, angle):
+        angle_diff = self.calculateAngleDegrees() - angle
+
+        if(angle_diff > 0):
+            self.stepperMovement((angle_diff/360)*200, "CW", None)
+        elif(angle_diff < 0):
+            self.stepperMovement((angle_diff/360)*200, "CCW", None)
+
+    def moveToAngleZero(self):
+        self.stepperMoveToAngle(0)
+

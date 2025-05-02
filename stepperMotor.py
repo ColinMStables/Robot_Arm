@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import threading
 
 # How many address bits are in I2C (7)
 
@@ -28,7 +29,18 @@ class stepperMotor:
         GPIO.output(self.stepPin, GPIO.LOW)
         GPIO.output(self.directionPin, GPIO.LOW)
 
-    def stepperMovement(self, steps, direction,timeDelay = 0.02):
+    def __init__(self, pins):
+        self.stepPin = pins[0]
+        self.directionPin = pins[1]
+        self.counter = 0 # Keeps track of how many steps we've taken (- values are CW, + values are CCW)
+
+        GPIO.setup(self.stepPin, GPIO.OUT)
+        GPIO.setup(self.directionPin, GPIO.OUT)
+
+        GPIO.output(self.stepPin, GPIO.LOW)
+        GPIO.output(self.directionPin, GPIO.LOW)
+
+    def stepperMovementThread(self, steps, direction,timeDelay = 0.02):
         #__doc__
         """
         Moves a stepper motor a certain number of steps, with a delay inbetween steps
@@ -47,7 +59,7 @@ class stepperMotor:
 
         for i in range(steps):
             GPIO.output(self.stepPin, GPIO.LOW)
-            time.sleep(time)
+            time.sleep(timeDelay)
             GPIO.output(self.stepPin, GPIO.HIGH)
 
             if(direction == "CW"):
@@ -56,3 +68,34 @@ class stepperMotor:
                 self.counter += 1
 
             time.sleep(timeDelay)
+
+    def calculateAngleDegrees(self):
+        return (self.counter / 200)*360
+
+    def stepperMovement(self, steps, direction, timeDelay):
+       #__doc__
+        """
+        Moves a stepper motor a certain number of steps, with a delay inbetween steps
+
+        steps (int): the amount of steps to take for the stepper
+
+        direction (string): "CW" makes the motor run clock wise, "CCW" makes the motor run counter clock wise
+
+        timeDelay (float): defines a delay time (initially 0.02 sec)
+        """
+        if(timeDelay == None):
+            task = threading.Thread(target=self.stepperMovementThread, args=(steps, direction,0.02,) )
+        else:
+            task = threading.Thread(target=self.stepperMovementThread, args=(steps, direction,0.02,) )
+        task.start()
+
+    def stepperMoveToAngle(self, angle):
+        angle_diff = self.calculateAngleDegrees() - angle
+
+        if(angle_diff > 0):
+            self.stepperMovement((angle_diff/360)*200, "CW", None)
+        elif(angle_diff < 0):
+            self.stepperMovement((angle_diff/360)*200, "CCW", None)
+
+    def moveToAngleZero(self):
+        self.stepperMoveToAngle(0)
