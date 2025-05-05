@@ -1,20 +1,6 @@
 import RPi.GPIO as GPIO
 import time
 
-# How many address bits are in I2C (7)
-
-# What sensors require MEMS (many different sensors, microphones, accelerometers, gyroscopes)
-
-# What do gyroscopes measure (angular velocity)
-
-# What is gaussian noise (applying a gaussian to the data and selecting from it)
-
-# What is edge computing (Bringing compute as close to the applicaiton as possible)
-
-# What is succesive approximation
-
-# What's an ADC, does the Pi have and ADC, what boards have ADCs
-
 class stepperMotor:
 
     def __init__(self, stepPin, directionPin):
